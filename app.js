@@ -1,37 +1,41 @@
-// Include ./utils/geoloc
-//Include ./utils/weatherinfo
-var geoloc = require('./utils/geoloc')
-var weatherinfo = require('./utils/weatherinfo')
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
 
-/* Understand and test the following code by uncommenting it. You can observe the following:
-  First it will print geolocation of given town. 
-  If the geolocation of the town is found then it will display the current temperature of it.
-*/
-geoloc.geoloc("Chennai",function(error,locjson){
-    if(error){
-        console.log(error)
-    }
-    else{
-        console.log("Chennai Longitude:"+locjson.longitude+" Latitude:"+locjson.latitude)
-        
-    }
-})
+var indexRouter = require('./routes/index');
+var usersRouter = require('./routes/users');
 
-weatherinfo.getWeatherInfo("Chennai",function(error,temperatureinfo){
-            if(error){
-                console.log(error)
-            }
-            else{
-                console.log("Current Temperature in Chennai:"+temperatureinfo)
-            }
-        
-        })
+var app = express();
 
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
-//Test the following Case and observe the output.
-// CASE 1:Copy and Paste the above code to test with another valid city and observe the output.
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// CASE 2:Copy and Paste the above code to test with invalid city value and observe the output.
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
 
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
+});
 
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
 
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
+
+module.exports = app;
